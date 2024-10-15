@@ -2,8 +2,8 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
+use std::convert::TryInto;
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
@@ -29,13 +29,19 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T> Default for LinkedList<T>
+where
+    T : Ord + Clone
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T> LinkedList<T>
+where
+    T: Ord + Clone
+{
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -71,12 +77,39 @@ impl<T> LinkedList<T> {
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+
+		let mut merged_list = LinkedList::new();
+        let mut current_a = list_a.start.clone();
+        let mut current_b = list_b.start.clone();
+
+        while current_a.is_some() && current_b.is_some() {
+            let a_val = unsafe {&current_a.unwrap().as_ref().val};
+            let b_val = unsafe {&current_b.unwrap().as_ref().val};
+
+            if a_val <= b_val {
+                merged_list.add(unsafe {current_a.unwrap().as_ref().val.clone()});
+                current_a = unsafe {current_a.unwrap().as_ref().next.clone()};
+            } else {
+                merged_list.add(unsafe {current_b.unwrap().as_ref().val.clone()});
+                current_b = unsafe {current_b.unwrap().as_ref().next.clone()};
+            }
         }
+
+        while let Some(node_ptr) = current_a {
+            unsafe {
+                merged_list.add(unsafe {node_ptr.as_ref().val.clone()});
+                current_a = unsafe {node_ptr.as_ref().next.clone()};
+            }
+        }
+
+        while let Some(node_ptr) = current_b {
+            unsafe {
+                merged_list.add(unsafe {node_ptr.as_ref().val.clone()});
+                current_b = unsafe {node_ptr.as_ref().next.clone()};
+            }
+        }
+
+        merged_list
 	}
 }
 
